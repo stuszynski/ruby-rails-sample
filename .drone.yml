@@ -1,13 +1,29 @@
 pipeline:
+  restore-cache:
+    image: drillster/drone-volume-cache
+    restore: true
+    mount:
+      - ./.bundle
+    volumes:
+      - /tmp/cache:/cache
+
   build:
     image: ruby:2.2.1
     commands:
-    - bundle install
+    - bundle install --path=.bundle/gems --without development production staging
     - bundle exec rake db:setup
     - bundle exec rake test
     environment:
       - RACK_ENV=test
       - DATABASE_URL=postgres://postgres:postgres@database/myapp_test
+
+  rebuild-cache:
+    image: drillster/drone-volume-cache
+    rebuild: true
+    mount:
+      - ./.bundle
+    volumes:
+      - /tmp/cache:/cache
 
 services:
   database:
